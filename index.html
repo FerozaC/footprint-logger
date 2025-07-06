@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footprint Logger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="app-title">🌱 Footprint Logger</h1>
+            <div class="daily-total">
+                <span class="total-label">Today's CO₂:</span>
+                <span class="total-value" id="dailyTotal">0.0 kg</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="input-section">
+                <h2>Log an Activity</h2>
+                <div class="input-form">
+                    <div class="form-group">
+                        <label for="activitySelect">Choose Activity:</label>
+                        <select id="activitySelect" class="activity-select">
+                            <option value="">Select an activity...</option>
+                            <optgroup label="Transport">
+                                <option value="drive-10km" data-co2="2.3" data-category="Transport">Drive 10 km</option>
+                                <option value="drive-50km" data-co2="11.5" data-category="Transport">Drive 50 km</option>
+                                <option value="bus-10km" data-co2="0.8" data-category="Transport">Take bus 10 km</option>
+                                <option value="flight-domestic" data-co2="255" data-category="Transport">Domestic flight</option>
+                            </optgroup>
+                            <optgroup label="Food">
+                                <option value="beef-meal" data-co2="6.6" data-category="Food">Eat beef (1 meal)</option>
+                                <option value="chicken-meal" data-co2="1.6" data-category="Food">Eat chicken (1 meal)</option>
+                                <option value="vegetarian-meal" data-co2="0.4" data-category="Food">Vegetarian meal</option>
+                                <option value="dairy-products" data-co2="3.2" data-category="Food">Dairy products (daily)</option>
+                            </optgroup>
+                            <optgroup label="Energy">
+                                <option value="ac-1hour" data-co2="0.9" data-category="Energy">Use AC for 1 hour</option>
+                                <option value="heating-1hour" data-co2="1.2" data-category="Energy">Use heating for 1 hour</option>
+                                <option value="computer-8hours" data-co2="0.6" data-category="Energy">Use computer 8 hours</option>
+                                <option value="washing-machine" data-co2="0.6" data-category="Energy">Run washing machine</option>
+                            </optgroup>
+                            <option value="custom">Add custom activity...</option>
+                        </select>
+                    </div>
+
+                    <div id="customActivityForm" class="custom-form hidden">
+                        <div class="form-group">
+                            <label for="customName">Activity Name:</label>
+                            <input type="text" id="customName" placeholder="e.g., Bike 5 km">
+                        </div>
+                        <div class="form-group">
+                            <label for="customCO2">CO₂ Emission (kg):</label>
+                            <input type="number" id="customCO2" step="0.1" min="0" placeholder="e.g., 1.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="customCategory">Category:</label>
+                            <select id="customCategory">
+                                <option value="Transport">Transport</option>
+                                <option value="Food">Food</option>
+                                <option value="Energy">Energy</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="logActivity" class="btn btn-primary">Log Activity</button>
+                </div>
+            </section>
+
+            <section class="filter-section">
+                <h3>Filter by Category</h3>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="Transport">Transport</button>
+                    <button class="filter-btn" data-category="Food">Food</button>
+                    <button class="filter-btn" data-category="Energy">Energy</button>
+                </div>
+            </section>
+
+            <section class="chart-section">
+                <h3>Emissions by Category</h3>
+                <div class="chart-container">
+                    <canvas id="emissionsChart" width="400" height="200"></canvas>
+                </div>
+            </section>
+
+            <section class="log-section">
+                <div class="log-header">
+                    <h3>Today's Activities</h3>
+                    <button id="clearLog" class="btn btn-secondary">Clear All</button>
+                </div>
+                <div id="activityLog" class="activity-log">
+                    <p class="empty-state">No activities logged today. Start by adding an activity above!</p>
+                </div>
+            </section>
+        </main>
+
+
+        <footer class="footer">
+            <div class="tip-container">
+                <h4>💡 Tip of the Day</h4>
+                <p id="dailyTip">Walking or cycling for short trips can significantly reduce your carbon footprint!</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
