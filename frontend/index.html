@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Footprint Logger</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+   <header class="header">
+  <div class="app-title">
+    <div class="app-logo">
+      <img src="assets/logo.png" alt="Footprint Logger Logo">
+    </div>
+    <span class="title-text">Footprint Logger</span>
+  </div>
+  <div class="daily-total">
+    <span class="total-label">Total CO2 Today:</span>
+    <span class="total-value" id="dailyTotal">0 kg</span>
+  </div>
+</header>
+
+    <div id="auth-section">
+      <div class="input-section">
+        <h2>Register</h2>
+        <div class="form-group">
+          <input type="text" id="regUsername" placeholder="Username">
+        </div>
+        <div class="form-group">
+          <input type="email" id="regEmail" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="regPassword" placeholder="Password">
+        </div>
+        <button class="btn btn-primary" id="registerBtn">Register</button>
+      </div>
+
+      <div class="input-section" style="margin-top:20px;">
+        <h2>Login</h2>
+        <div class="form-group">
+          <input type="email" id="loginEmail" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="loginPassword" placeholder="Password">
+        </div>
+        <button class="btn btn-primary" id="loginBtn">Login</button>
+      </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+      <h1>Welcome, <span id="usernameDisplay"></span></h1>
+
+      <div class="main-content">
+        <div class="input-section">
+          <h3>Log Activity</h3>
+          <select id="activitySelect" class="activity-select">
+            <option value="">Select activity</option>
+            <option value="Transport" data-co2="1" data-category="Transport">Bus – 1kg</option>
+            <option value="Food" data-co2="2" data-category="Food">Beef meal – 2kg</option>
+            <option value="Energy" data-co2="0.5" data-category="Energy">Short shower – 0.5kg</option>
+            <option value="custom">Custom activity</option>
+          </select>
+
+          <div id="customActivityForm" class="custom-form hidden">
+            <input type="text" id="customName" placeholder="Activity name">
+            <input type="number" id="customCO2" placeholder="CO2 kg">
+            <select id="customCategory">
+              <option value="Transport">Transport</option>
+              <option value="Food">Food</option>
+              <option value="Energy">Energy</option>
+            </select>
+          </div>
+
+          <input type="date" id="activityDate" style="margin-top:10px;">
+          <button class="btn btn-primary" id="logActivity" style="margin-top:10px;">Log Activity</button>
+        </div>
+
+        <div class="chart-section">
+          <h3>Weekly Summary</h3>
+          <canvas id="weeklyChart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="log-section">
+          <div class="log-header">
+            <h3>Today's Activities</h3>
+          </div>
+          <div class="activity-log" id="activityLog"></div>
+        </div>
+
+        <div class="log-section">
+          <h3>Leaderboard</h3>
+          <div id="leaderboard"></div>
+        </div>
+
+        <div class="log-section">
+          <h3 id="communityAverage"></h3>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" id="logoutBtn" style="margin-top:20px;">Logout</button>
+    </div>
+<br/>
+    <footer class="footer">
+      Footprint Logger &copy; 2025
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
