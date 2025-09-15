@@ -1,43 +1,83 @@
 # Footprint Logger
 
-Footprint Logger is a beginner-friendly web app that helps users track their daily carbon footprint based on activities like driving, eating meat, or using electricity.
+Footprint Logger is a full-stack web application that helps users track and understand their daily carbon footprint.  
+It allows individuals to log activities that contribute to CO₂ emissions, view personal summaries, and compare their results with the broader community.  
 
 ## About the Project
 
-This project was built for a real-world scenario where a local environmental group needed a simple tool for people to track the carbon emissions from their daily activities. The goal is to help raise awareness and encourage more eco-friendly habits.
+This project was designed for a real-world use case where an environmental group wanted an accessible way for people to track emissions.  
+The goal is to raise awareness, encourage eco-friendly habits, and build a sense of community through shared impact.  
 
 ## Features
 
-- Log daily activities that contribute to CO₂ emissions (transport, food, energy)
-- Add custom activities with custom CO₂ values
-- View today's total emissions in kilograms
-- Filter activities by category (Food, Transport, Energy)
-- View a basic bar chart summary by category
-- Daily environmental tip shown on page load
-- Data is saved in localStorage between sessions
+- **User Authentication**: Register and log in with secure JWT-based authentication.
+- **Personal Activity Logs**: Save and manage activities tied to your account.
+- **Daily & Weekly Summaries**: Track personal footprint totals over time, with streak tracking.
+- **Community Average**: See how your footprint compares to other users.
+- **Leaderboard**: Highlight users with the lowest footprint to inspire healthy competition.
+- **Activity Categories**: Log emissions for food, transport, energy, and custom entries.
+- **Date Validation**: Prevents users from logging activities for future dates.
+- **Interactive Dashboard**: User-friendly interface to view logs, summaries, and comparisons.
 
 ## Technologies Used
 
-- HTML for structure
-- CSS for styling and layout
-- JavaScript for logic, interactivity, and chart rendering
+### Frontend
+- HTML, CSS, and Vanilla JavaScript  
+- Chart.js for data visualization  
 
-## Data Storage
+### Backend
+- Node.js with Express.js  
+- MongoDB with Mongoose ODM  
 
-The app uses `localStorage` to keep your activity log and custom entries between page refreshes and browser sessions.
+### Authentication
+- JSON Web Tokens (JWT)  
+- Bcrypt for secure password hashing  
 
 ## Project Goals
 
-This project was created as part of a real-world build task focused on learning how to:
-- Build UI functionality with HTML/CSS/JS
-- Store and retrieve data locally
-- Work with basic chart rendering
-- Apply filtering and dynamic content updates
+This project was created to practice **full-stack development** with a focus on:  
+- Designing authentication and protected routes  
+- Storing and retrieving user-specific data from a database  
+- Building dashboards and visual summaries  
+- Implementing community features like averages and leaderboards  
+- Strengthening skills in Node.js, MongoDB, and frontend-backend integration  
 
+## Setup Instructions
 
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/your-username/footprint-logger.git
+   cd footprint-logger
+   ```
 
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
+3. Create a `.env` file in the root directory with the following:
+   ```
+   MONGO_URI=your_mongodb_connection_string
+   JWT_SECRET=your_secret_key
+   PORT=5000
+   ```
 
+4. Start the server:
+   ```bash
+   npm start
+   ```
 
+5. Open the app in your browser:
+   ```
+   http://localhost:5000
+   ```
 
+## Future Improvements
 
+- Mobile-first responsive design  
+- Social sharing of achievements  
+- Gamification elements (badges, levels)  
+- Integration with external APIs for emission data  
+
+---
+🌱 *Track. Learn. Improve. Together we can reduce our footprint.* ♻️
