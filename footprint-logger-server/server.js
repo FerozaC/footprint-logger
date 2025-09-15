@@ -112,11 +112,11 @@ app.get("/api/activities/weekly", authMiddleware, async (req, res) => {
   try {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
+    
     const lastWeek = new Date(today);
     lastWeek.setDate(today.getDate() - 6);
     lastWeek.setHours(0, 0, 0, 0);
 
-    
     const userId = new mongoose.Types.ObjectId(req.userId);
 
     const summary = await Activity.aggregate([
@@ -128,7 +128,13 @@ app.get("/api/activities/weekly", authMiddleware, async (req, res) => {
       },
       { 
         $group: { 
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }, 
+          _id: { 
+            $dateToString: { 
+              format: "%Y-%m-%d", 
+              date: "$date",
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            } 
+          }, 
           totalCO2: { $sum: "$co2" } 
         } 
       },
