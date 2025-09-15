@@ -1,7 +1,6 @@
 let token = null;
 let username = null;
 
-// Set max date to tomorrow so only future dates are disabled
 const today = new Date();
 const tomorrow = new Date();
 tomorrow.setDate(today.getDate() + 1);
@@ -107,7 +106,6 @@ document.getElementById("logActivity").addEventListener("click", async () => {
   }
 });
 
-// Load activities with newest first and "More" button if >10
 async function loadActivities() {
   if (!token) return;
   try {
@@ -118,7 +116,7 @@ async function loadActivities() {
     logDiv.innerHTML = "";
     const initial = 10;
 
-    // Activities are now in ascending order from server
+  
     activities.forEach((a, i) => {
       const dateStr = new Date(a.date).toLocaleDateString();
       const div = document.createElement("div");
@@ -161,7 +159,7 @@ async function loadActivities() {
   }
 }
 
-// Weekly summary chart
+
 async function loadWeeklySummary() {
   if (!token) return;
   try {
@@ -174,10 +172,10 @@ async function loadWeeklySummary() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     
-    // Clear the canvas completely
+  
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Get the last 7 days
+  
     const weekDays = [];
     const co2PerDay = [];
     
@@ -186,24 +184,24 @@ async function loadWeeklySummary() {
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split("T")[0];
       
-      // Find matching data for this date
+     
       const entry = data.find(e => e._id === dateStr);
       
       weekDays.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
       co2PerDay.push(entry ? entry.totalCO2 : 0);
     }
 
-    // Set up chart dimensions
+   
     const padding = 40;
     const chartWidth = canvas.width - padding * 2;
     const chartHeight = canvas.height - padding * 2;
     const barWidth = (chartWidth - 20) / 7;
     
-    // Find max value for scaling
+   
     const maxCO2 = Math.max(...co2PerDay, 1);
     const scaleFactor = chartHeight / maxCO2;
 
-    // Draw bars
+
     ctx.fillStyle = "#4caf50";
     co2PerDay.forEach((val, i) => {
       const barHeight = val * scaleFactor;
@@ -212,17 +210,17 @@ async function loadWeeklySummary() {
       
       ctx.fillRect(x, y, barWidth, barHeight);
       
-      // Draw value label
+  
       ctx.fillStyle = "#000";
       ctx.font = "12px Arial";
       ctx.textAlign = "center";
       ctx.fillText(val.toFixed(1) + "kg", x + barWidth / 2, y - 5);
       
-      // Draw date label
+   
       ctx.fillText(weekDays[i], x + barWidth / 2, canvas.height - padding + 15);
     });
 
-    // Draw Y-axis labels
+    
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     for (let i = 0; i <= 5; i++) {
