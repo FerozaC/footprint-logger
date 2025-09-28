@@ -5,19 +5,24 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const Activity = require("./models/Activity");
+const authMiddleware = require("./middleware/auth");
+require("dotenv").config();
+
 
 const app = express();
 app.use(express.json());
 
-mongoose.connect("mongodb://127.0.0.1:27017/footlogger")
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error(err));
 
-app.use(express.static(path.join(__dirname, "../frontend")));
+
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.post("/api/register", async (req, res) => {
   const { username, email, password } = req.body;
-  if (!username || !email || !password) return res.status(400).json({ message: "All fields are required" });
+  if (!username || !email || !password)
+    return res.status(400).json({ message: "All fields are required" });
 
   try {
     const existingUser = await User.findOne({ email });
@@ -45,7 +50,7 @@ app.post("/api/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ userId: user._id }, "your_jwt_secret", { expiresIn: "1h" });
+   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.json({ token, username: user.username, email: user.email });
   } catch (err) {
     console.error(err);
@@ -53,30 +58,18 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-function authMiddleware(req, res, next) {
-  const token = req.header("Authorization")?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token, authorization denied" });
-
-  try {
-    const decoded = jwt.verify(token, "your_jwt_secret");
-    req.userId = decoded.userId;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
-  }
-}
-
 app.post("/api/activities", authMiddleware, async (req, res) => {
   const { name, co2, category, date } = req.body;
-  if (!name || !co2 || !category || !date) return res.status(400).json({ message: "All fields are required" });
+  if (!name || !co2 || !category || !date)
+    return res.status(400).json({ message: "All fields are required" });
 
   try {
-    const activity = new Activity({ 
-      user: req.userId, 
-      name, 
-      co2, 
-      category, 
-      date: new Date(date) 
+    const activity = new Activity({
+      user: req.userId,
+      name,
+      co2,
+      category,
+      date: new Date(date)
     });
     await activity.save();
     res.status(201).json(activity);
@@ -99,7 +92,6 @@ app.delete("/api/activities/:id", authMiddleware, async (req, res) => {
 
 app.get("/api/activities", authMiddleware, async (req, res) => {
   try {
-
     const activities = await Activity.find({ user: req.userId }).sort({ date: 1 });
     res.json(activities);
   } catch (err) {
@@ -116,28 +108,27 @@ app.get("/api/activities/weekly", authMiddleware, async (req, res) => {
     lastWeek.setDate(today.getDate() - 6);
     lastWeek.setHours(0, 0, 0, 0);
 
-    
     const userId = new mongoose.Types.ObjectId(req.userId);
 
     const summary = await Activity.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           user: userId,
           date: { $gte: lastWeek, $lte: today }
-        } 
+        }
       },
-      { 
-        $group: { 
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }, 
-          totalCO2: { $sum: "$co2" } 
-        } 
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          totalCO2: { $sum: "$co2" }
+        }
       },
       { $sort: { _id: 1 } }
     ]);
 
     res.json(summary);
   } catch (err) {
-    console.error("Weekly summary error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -163,7 +154,6 @@ app.get("/api/leaderboard", async (req, res) => {
       { $unwind: "$userInfo" },
       { $project: { _id: 0, username: "$userInfo.username", email: "$userInfo.email", totalCO2: 1 } }
     ]);
-
     res.json(leaderboard);
   } catch (err) {
     console.error(err);
@@ -172,8 +162,16 @@ app.get("/api/leaderboard", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Footprint Logger API running...");
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-const PORT = 5000;
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/login.html"));
+});
+
+app.get("/api/health", (req, res) => {
+  res.send("✅ API running");
+});
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
