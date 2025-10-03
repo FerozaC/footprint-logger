@@ -19,7 +19,7 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error(err));
 
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public"), { index: false }));
 
 app.post("/api/register", async (req, res) => {
   const { username, email, password } = req.body;
