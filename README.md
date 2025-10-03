@@ -1,6 +1,6 @@
 # Footprint Logger
 
-> Live site: Currently being rendered at https://example.com (replace with the actual URL)
+> Live site: Currently being rendered  [here](https://footprint-logger-gfeh.onrender.com)
 
 Footprint Logger is a full-stack web application that helps users track and understand their daily carbon footprint.  
 It allows individuals to log activities that contribute to CO₂ emissions, view personal summaries, and compare their results with the broader community.  
