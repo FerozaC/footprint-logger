@@ -8,15 +8,12 @@ const Activity = require("./models/Activity");
 const authMiddleware = require("./middleware/auth");
 require("dotenv").config();
 
-
 const app = express();
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error(err));
-
-
 
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -51,8 +48,8 @@ app.post("/api/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
-  const secret = process.env.JWT_SECRET || 'your_jwt_secret';
-  const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
+    const secret = process.env.JWT_SECRET || 'your_jwt_secret';
+    const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
     res.json({ token, username: user.username, email: user.email });
   } catch (err) {
     console.error(err);

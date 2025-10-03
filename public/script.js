@@ -6,17 +6,12 @@ const tomorrow = new Date();
 tomorrow.setDate(today.getDate() + 1);
 document.getElementById("activityDate").setAttribute("max", tomorrow.toISOString().split("T")[0]);
 
-// Auth is handled on separate pages (signin.html / register.html).
-// This file manages the dashboard, activities and token-based behaviour.
-
 document.getElementById("logoutBtn").addEventListener("click", () => {
   token = null;
   username = null;
   localStorage.removeItem("token");
   localStorage.removeItem("username");
-  // Return user to home page where they can sign in or register.
   document.getElementById("dashboard").classList.add("hidden");
-  // Optionally redirect to sign-in page
   window.location.href = "signin.html";
 });
 
@@ -68,7 +63,6 @@ async function loadActivities() {
     logDiv.innerHTML = "";
     const initial = 10;
 
-  
     activities.forEach((a, i) => {
       const dateStr = new Date(a.date).toLocaleDateString();
       const div = document.createElement("div");
@@ -80,12 +74,10 @@ async function loadActivities() {
         </div>
         <div class="activity-co2">${a.co2} kg</div>
       `;
-      
       if (i >= initial) div.classList.add("hidden-activity");
       logDiv.appendChild(div);
     });
 
-  
     let moreBtn = document.getElementById("moreActivitiesBtn");
     if (!moreBtn && activities.length > initial) {
       moreBtn = document.createElement("button");
@@ -93,12 +85,12 @@ async function loadActivities() {
       moreBtn.textContent = "Show More Activities";
       moreBtn.classList.add("btn", "btn-primary");
       moreBtn.style.marginTop = "10px";
-      
+
       moreBtn.addEventListener("click", () => {
         document.querySelectorAll(".hidden-activity").forEach(el => el.classList.remove("hidden-activity"));
         moreBtn.remove();
       });
-      
+
       logDiv.parentNode.insertBefore(moreBtn, logDiv.nextSibling);
     }
 
@@ -111,7 +103,6 @@ async function loadActivities() {
   }
 }
 
-
 async function loadWeeklySummary() {
   if (!token) return;
   try {
@@ -123,56 +114,41 @@ async function loadWeeklySummary() {
     const canvas = document.getElementById("weeklyChart");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    
-  
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  
     const weekDays = [];
     const co2PerDay = [];
-    
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split("T")[0];
-      
-     
       const entry = data.find(e => e._id === dateStr);
-      
       weekDays.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
       co2PerDay.push(entry ? entry.totalCO2 : 0);
     }
 
-   
     const padding = 40;
     const chartWidth = canvas.width - padding * 2;
     const chartHeight = canvas.height - padding * 2;
     const barWidth = (chartWidth - 20) / 7;
-    
-   
+
     const maxCO2 = Math.max(...co2PerDay, 1);
     const scaleFactor = chartHeight / maxCO2;
-
 
     ctx.fillStyle = "#4caf50";
     co2PerDay.forEach((val, i) => {
       const barHeight = val * scaleFactor;
       const x = padding + i * (barWidth + 5);
       const y = canvas.height - padding - barHeight;
-      
       ctx.fillRect(x, y, barWidth, barHeight);
-      
-  
       ctx.fillStyle = "#000";
       ctx.font = "12px Arial";
       ctx.textAlign = "center";
       ctx.fillText(val.toFixed(1) + "kg", x + barWidth / 2, y - 5);
-      
-   
       ctx.fillText(weekDays[i], x + barWidth / 2, canvas.height - padding + 15);
     });
 
-    
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     for (let i = 0; i <= 5; i++) {
@@ -222,7 +198,6 @@ if (localStorage.getItem("token")) {
   if (usernameEl) usernameEl.textContent = username;
   const dashboard = document.getElementById("dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
-  // Load dashboard data
   loadActivities();
   loadWeeklySummary();
   loadLeaderboard();

@@ -7,7 +7,7 @@ function authMiddleware(req, res, next) {
   try {
     const secret = process.env.JWT_SECRET || 'your_jwt_secret';
     const decoded = jwt.verify(token, secret);
-    req.userId = decoded.userId; // consistent with Activity route
+    req.userId = decoded.userId;
     next();
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });

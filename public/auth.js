@@ -1,4 +1,3 @@
-// Shared auth helpers for signin.html and register.html
 async function apiLogin(email, password) {
   const res = await fetch('/api/login', {
     method: 'POST',
@@ -19,7 +18,6 @@ async function apiRegister(username, email, password) {
   return { ok: res.ok, data };
 }
 
-// Called by signin.html
 async function handleLoginClick(emailElId, passElId) {
   const email = document.getElementById(emailElId).value;
   const password = document.getElementById(passElId).value;
@@ -40,7 +38,6 @@ async function handleLoginClick(emailElId, passElId) {
   }
 }
 
-// Called by register.html — performs registration then auto-login by calling /api/login
 async function handleRegisterClick(usernameElId, emailElId, passElId) {
   const username = document.getElementById(usernameElId).value;
   const email = document.getElementById(emailElId).value;
