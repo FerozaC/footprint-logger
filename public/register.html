@@ -1,42 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Register - Footprint Logger</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Footprint Logger</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="container">
-    <header class="header">
-      <div class="app-title">
-        <div class="app-logo">
-          <img src="assets/logo.png" alt="Footprint Logger Logo">
-        </div>
-        <span class="title-text">Footprint Logger</span>
-      </div>
-    </header>
+<body class="auth-page">
+    <div class="container">
+        <div class="form-section">
+            <div class="logo">
+                <span class="logo-icon">🌱</span>
+                <h1>Footprint Logger</h1>
+            </div>
+            <p class="tagline">Start your journey to a more sustainable lifestyle today.</p>
 
-    <div class="input-section">
-      <h2>Register</h2>
-      <div class="form-group">
-        <input type="text" id="regUsername" placeholder="Username">
-      </div>
-      <div class="form-group">
-        <input type="email" id="regEmail" placeholder="Email">
-      </div>
-      <div class="form-group">
-        <input type="password" id="regPassword" placeholder="Password">
-      </div>
-      <button class="btn btn-primary" id="registerBtn">Register</button>
-      <p>Already have an account? <a href="signin.html">Sign in</a></p>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" name="username" placeholder="Enter username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email address</label>
+                    <input type="email" id="regEmail" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" name="password" placeholder="••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms" class="checkbox-label">
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn">Create your account</button>
+            </form>
+        </div>
+
+        <div class="hero-section">
+            <h2 class="hero-title">Your impact starts here</h2>
+            <p class="hero-description">
+                Track, analyze, and reduce your carbon footprint with intelligent insights and actionable recommendations tailored just for you.
+            </p>
+
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <div class="feature-content">
+                    <h3>Weekly Goal</h3>
+                    <p>Reduce 5kg CO₂</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💡</div>
+                <div class="feature-content">
+                    <h3>Smart Tips</h3>
+                    <p>Personalized advice</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <footer class="footer">Footprint Logger &copy; by Feroza Chishty 2025</footer>
-  </div>
-
-  <script src="auth.js"></script>
-  <script>
-    document.getElementById('registerBtn').addEventListener('click', () => handleRegisterClick('regUsername', 'regEmail', 'regPassword'));
-  </script>
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+            handleRegisterClick('regUsername','regEmail','regPassword');
+        });
+    </script>
 </body>
 </html>
