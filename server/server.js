@@ -10,10 +10,14 @@ require("dotenv").config();
 
 const app = express();
 app.use(express.json());
+const http = require("http").createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(http);
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error(err));
+  .catch((err) => console.error(err));
 
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -24,7 +28,8 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "Email already in use" });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already in use" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ username, email, password: hashedPassword });
@@ -39,7 +44,8 @@ app.post("/api/register", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "All fields required" });
+  if (!email || !password)
+    return res.status(400).json({ message: "All fields required" });
 
   try {
     const user = await User.findOne({ email });
@@ -48,7 +54,7 @@ app.post("/api/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
-    const secret = process.env.JWT_SECRET || 'your_jwt_secret';
+    const secret = process.env.JWT_SECRET || "your_jwt_secret";
     const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
     res.json({ token, username: user.username, email: user.email });
   } catch (err) {
@@ -68,10 +74,60 @@ app.post("/api/activities", authMiddleware, async (req, res) => {
       name,
       co2,
       category,
-      date: new Date(date)
+      date: new Date(date),
     });
     await activity.save();
+    io.to(req.userId.toString()).emit("tip", {
+      message: `Nice! You logged ${name} (${co2}kg) in ${category}. Try replacing one ${category} activity with a lower-emission option this week.`,
+    });
     res.status(201).json(activity);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Return CO2 totals by category for the authenticated user (last 7 days)
+app.get(
+  "/api/activities/category-summary",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const today = new Date();
+      const lastWeek = new Date();
+      lastWeek.setDate(today.getDate() - 6);
+      lastWeek.setHours(0, 0, 0, 0);
+      const userId = new mongoose.Types.ObjectId(req.userId);
+
+      const summary = await Activity.aggregate([
+        { $match: { user: userId, date: { $gte: lastWeek, $lte: today } } },
+        { $group: { _id: "$category", totalCO2: { $sum: "$co2" } } },
+        { $sort: { totalCO2: -1 } },
+      ]);
+
+      res.json({ summary });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Server error" });
+    }
+  },
+);
+
+app.post("/api/goals", authMiddleware, async (req, res) => {
+  try {
+    const { weeklyGoal } = req.body; // weeklyGoal in kg
+    await User.findByIdAndUpdate(req.userId, { weeklyGoal });
+    res.json({ message: "Weekly goal set", weeklyGoal });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/api/goals", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("weeklyGoal");
+    res.json({ weeklyGoal: user?.weeklyGoal || 0 });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -80,8 +136,12 @@ app.post("/api/activities", authMiddleware, async (req, res) => {
 
 app.delete("/api/activities/:id", authMiddleware, async (req, res) => {
   try {
-    const activity = await Activity.findOneAndDelete({ _id: req.params.id, user: req.userId });
-    if (!activity) return res.status(404).json({ message: "Activity not found" });
+    const activity = await Activity.findOneAndDelete({
+      _id: req.params.id,
+      user: req.userId,
+    });
+    if (!activity)
+      return res.status(404).json({ message: "Activity not found" });
     res.json({ message: "Activity deleted" });
   } catch (err) {
     console.error(err);
@@ -91,7 +151,9 @@ app.delete("/api/activities/:id", authMiddleware, async (req, res) => {
 
 app.get("/api/activities", authMiddleware, async (req, res) => {
   try {
-    const activities = await Activity.find({ user: req.userId }).sort({ date: 1 });
+    const activities = await Activity.find({ user: req.userId }).sort({
+      date: 1,
+    });
     res.json(activities);
   } catch (err) {
     console.error(err);
@@ -113,16 +175,16 @@ app.get("/api/activities/weekly", authMiddleware, async (req, res) => {
       {
         $match: {
           user: userId,
-          date: { $gte: lastWeek, $lte: today }
-        }
+          date: { $gte: lastWeek, $lte: today },
+        },
       },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-          totalCO2: { $sum: "$co2" }
-        }
+          totalCO2: { $sum: "$co2" },
+        },
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]);
 
     res.json(summary);
@@ -134,7 +196,9 @@ app.get("/api/activities/weekly", authMiddleware, async (req, res) => {
 
 app.get("/api/activities/average", async (req, res) => {
   try {
-    const result = await Activity.aggregate([{ $group: { _id: null, avgCO2: { $avg: "$co2" } } }]);
+    const result = await Activity.aggregate([
+      { $group: { _id: null, avgCO2: { $avg: "$co2" } } },
+    ]);
     const avgCO2 = result[0]?.avgCO2 || 0;
     res.json({ avgCO2 });
   } catch (err) {
@@ -149,9 +213,23 @@ app.get("/api/leaderboard", async (req, res) => {
       { $group: { _id: "$user", totalCO2: { $sum: "$co2" } } },
       { $sort: { totalCO2: 1 } },
       { $limit: 10 },
-      { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "userInfo" } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "userInfo",
+        },
+      },
       { $unwind: "$userInfo" },
-      { $project: { _id: 0, username: "$userInfo.username", email: "$userInfo.email", totalCO2: 1 } }
+      {
+        $project: {
+          _id: 0,
+          username: "$userInfo.username",
+          email: "$userInfo.email",
+          totalCO2: 1,
+        },
+      },
     ]);
     res.json(leaderboard);
   } catch (err) {
@@ -161,7 +239,7 @@ app.get("/api/leaderboard", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
+  res.sendFile(path.join(__dirname, "../public/welcome.html"));
 });
 
 app.get("/login", (req, res) => {
@@ -172,5 +250,21 @@ app.get("/api/health", (req, res) => {
   res.send("✅ API running");
 });
 
+io.on("connection", (socket) => {
+  socket.on("register", (payload) => {
+    // Expect payload to be a JWT token; verify and join the user's room
+    try {
+      const secret = process.env.JWT_SECRET || "your_jwt_secret";
+      const decoded = jwt.verify(payload, secret);
+      const userId = decoded.userId;
+      if (userId) socket.join(userId.toString());
+    } catch (e) {
+      // invalid or missing token; ignore registration
+    }
+  });
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+http.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`),
+);

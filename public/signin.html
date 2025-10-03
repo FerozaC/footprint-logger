@@ -1,69 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Footprint Logger</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="auth-page">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="auth-page">
     <div class="container">
-        <div class="form-section">
-            <div class="logo">
-                <span class="logo-icon">🌱</span>
-                <h1>Footprint Logger</h1>
-            </div>
-            <p class="tagline">Welcome back! Continue your journey to a more sustainable lifestyle.</p>
+      <div class="form-section">
+        <div class="logo">
+          <span class="logo-icon">🌱</span>
+          <h1>Footprint Logger</h1>
+        </div>
+        <p class="tagline">
+          Welcome back! Continue your journey to a more sustainable lifestyle.
+        </p>
 
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="loginEmail">Email address</label>
-                    <input type="email" id="loginEmail" name="email" placeholder="Enter your email" required>
-                </div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <input
+              type="email"
+              id="loginEmail"
+              name="email"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
 
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" placeholder="••••••" required>
-                </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input
+              type="password"
+              id="loginPassword"
+              name="password"
+              placeholder="••••••"
+              required
+            />
+          </div>
 
-                <button type="submit" class="submit-btn" id="loginBtn">Login</button>
+          <button type="submit" class="submit-btn" id="loginBtn">Login</button>
 
-                <p class="register-link">
-                    Don't have an account? <a href="register.html">Register</a>
-                </p>
-            </form>
+          <p class="register-link">
+            Don't have an account? <a href="register.html">Register</a>
+          </p>
+        </form>
+      </div>
+
+      <div class="hero-section">
+        <h2 class="hero-title">Your impact starts here</h2>
+        <p class="hero-description">
+          Track, analyze, and reduce your carbon footprint with intelligent
+          insights and actionable recommendations tailored just for you.
+        </p>
+
+        <div class="feature-card">
+          <div class="feature-icon">🌱</div>
+          <div class="feature-content">
+            <h3>Weekly Goal</h3>
+            <p>Reduce 5kg CO₂</p>
+          </div>
         </div>
 
-        <div class="hero-section">
-            <h2 class="hero-title">Your impact starts here</h2>
-            <p class="hero-description">
-                Track, analyze, and reduce your carbon footprint with intelligent insights and actionable recommendations tailored just for you.
-            </p>
-
-            <div class="feature-card">
-                <div class="feature-icon">🌱</div>
-                <div class="feature-content">
-                    <h3>Weekly Goal</h3>
-                    <p>Reduce 5kg CO₂</p>
-                </div>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">💡</div>
-                <div class="feature-content">
-                    <h3>Smart Tips</h3>
-                    <p>Personalized advice</p>
-                </div>
-            </div>
+        <div class="feature-card">
+          <div class="feature-icon">💡</div>
+          <div class="feature-content">
+            <h3>Smart Tips</h3>
+            <p>Personalized advice</p>
+          </div>
         </div>
+      </div>
     </div>
 
     <script src="auth.js"></script>
+    <script src="ui.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            handleLoginClick('loginEmail','loginPassword');
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const btn = document.getElementById("loginBtn");
+          btn.disabled = true;
+          window.showGlobalSpinner();
+          const res = await handleLoginClick("loginEmail", "loginPassword");
+          btn.disabled = false;
+          window.hideGlobalSpinner();
+          if (res.ok) {
+            window.location.href = "index.html";
+          } else {
+            alert(
+              res.data && res.data.message ? res.data.message : "Login failed",
+            );
+          }
         });
     </script>
-</body>
+  </body>
 </html>

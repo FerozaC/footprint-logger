@@ -6,7 +6,7 @@ const ActivitySchema = new mongoose.Schema({
   co2: { type: Number, required: true },
   category: { type: String, required: true },
   date: { type: Date, required: true },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model("Activity", ActivitySchema);

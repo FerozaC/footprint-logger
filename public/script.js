@@ -1,10 +1,14 @@
 let token = null;
 let username = null;
 
+let socket = null;
+
 const today = new Date();
 const tomorrow = new Date();
 tomorrow.setDate(today.getDate() + 1);
-document.getElementById("activityDate").setAttribute("max", tomorrow.toISOString().split("T")[0]);
+document
+  .getElementById("activityDate")
+  .setAttribute("max", tomorrow.toISOString().split("T")[0]);
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   token = null;
@@ -16,6 +20,10 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 });
 
 document.getElementById("logActivity").addEventListener("click", async () => {
+  const btn = document.getElementById("logActivity");
+  btn.disabled = true;
+  window.showGlobalSpinner();
+
   const select = document.getElementById("activitySelect");
   const val = select.value;
 
@@ -32,31 +40,38 @@ document.getElementById("logActivity").addEventListener("click", async () => {
   }
 
   const date = document.getElementById("activityDate").value;
-  if (!name || !co2 || !category || !date) return alert("Please fill all fields");
+  if (!name || !co2 || !category || !date)
+    return alert("Please fill all fields");
 
   try {
     await fetch("/api/activities", {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ name, co2, category, date })
+      body: JSON.stringify({ name, co2, category, date }),
     });
     await loadActivities();
     await loadWeeklySummary();
     await loadLeaderboard();
     await loadCommunityAverage();
+    btn.disabled = false;
+    window.hideGlobalSpinner();
   } catch (err) {
     console.error(err);
     alert("Failed to log activity. Try again.");
+    btn.disabled = false;
+    window.hideGlobalSpinner();
   }
 });
 
 async function loadActivities() {
   if (!token) return;
   try {
-    const res = await fetch("/api/activities", { headers: { "Authorization": `Bearer ${token}` } });
+    const res = await fetch("/api/activities", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const activities = await res.json();
 
     const logDiv = document.getElementById("activityLog");
@@ -87,7 +102,9 @@ async function loadActivities() {
       moreBtn.style.marginTop = "10px";
 
       moreBtn.addEventListener("click", () => {
-        document.querySelectorAll(".hidden-activity").forEach(el => el.classList.remove("hidden-activity"));
+        document
+          .querySelectorAll(".hidden-activity")
+          .forEach((el) => el.classList.remove("hidden-activity"));
         moreBtn.remove();
       });
 
@@ -95,8 +112,8 @@ async function loadActivities() {
     }
 
     const total = activities.reduce((sum, a) => sum + a.co2, 0);
-    document.getElementById("dailyTotal").textContent = total.toFixed(1) + " kg";
-
+    document.getElementById("dailyTotal").textContent =
+      total.toFixed(1) + " kg";
   } catch (err) {
     console.error(err);
     alert("Failed to load activities.");
@@ -107,7 +124,7 @@ async function loadWeeklySummary() {
   if (!token) return;
   try {
     const res = await fetch("/api/activities/weekly", {
-      headers: { "Authorization": `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
 
@@ -123,8 +140,10 @@ async function loadWeeklySummary() {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split("T")[0];
-      const entry = data.find(e => e._id === dateStr);
-      weekDays.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      const entry = data.find((e) => e._id === dateStr);
+      weekDays.push(
+        d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      );
       co2PerDay.push(entry ? entry.totalCO2 : 0);
     }
 
@@ -156,7 +175,6 @@ async function loadWeeklySummary() {
       const y = canvas.height - padding - (chartHeight / 5) * i;
       ctx.fillText(value.toFixed(1) + "kg", padding - 5, y);
     }
-
   } catch (err) {
     console.error("Error loading weekly summary:", err);
   }
@@ -167,7 +185,9 @@ async function loadLeaderboard() {
     const res = await fetch("/api/leaderboard");
     const data = await res.json();
     const div = document.getElementById("leaderboard");
-    div.innerHTML = data.map(u => `<div>${u.username}: ${u.totalCO2.toFixed(1)} kg</div>`).join("");
+    div.innerHTML = data
+      .map((u) => `<div>${u.username}: ${u.totalCO2.toFixed(1)} kg</div>`)
+      .join("");
   } catch (err) {
     console.error(err);
     alert("Failed to load leaderboard.");
@@ -182,7 +202,9 @@ async function loadCommunityAverage() {
     if (!avgDiv) {
       avgDiv = document.createElement("div");
       avgDiv.id = "communityAverage";
-      document.getElementById("dashboard").insertBefore(avgDiv, document.getElementById("logoutBtn"));
+      document
+        .getElementById("dashboard")
+        .insertBefore(avgDiv, document.getElementById("logoutBtn"));
     }
     avgDiv.textContent = `Community Avg CO2: ${data.avgCO2.toFixed(1)} kg`;
   } catch (err) {
@@ -198,8 +220,108 @@ if (localStorage.getItem("token")) {
   if (usernameEl) usernameEl.textContent = username;
   const dashboard = document.getElementById("dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
-  loadActivities();
-  loadWeeklySummary();
-  loadLeaderboard();
-  loadCommunityAverage();
+  (async function initDashboard() {
+    await loadActivities();
+    await loadWeeklySummary();
+    await loadLeaderboard();
+    await loadCommunityAverage();
+    setupSocket();
+    await loadWeeklyGoal();
+    await loadCategorySummary();
+  })();
+}
+
+function setupSocket() {
+  if (typeof io === "undefined") return;
+  socket = io();
+  socket.on("connect", () => {
+    if (username && socket && token) {
+      socket.emit("register", token);
+    }
+  });
+  socket.on("tip", (data) => {
+    showTip(data.message);
+  });
+}
+
+function showTip(message) {
+  let tipEl = document.getElementById("realtimeTip");
+  if (!tipEl) {
+    tipEl = document.createElement("div");
+    tipEl.id = "realtimeTip";
+    tipEl.style.position = "fixed";
+    tipEl.style.right = "20px";
+    tipEl.style.bottom = "20px";
+    tipEl.style.background = "#fff";
+    tipEl.style.border = "1px solid #ddd";
+    tipEl.style.padding = "12px 16px";
+    tipEl.style.borderRadius = "8px";
+    tipEl.style.boxShadow = "0 4px 14px rgba(0,0,0,0.12)";
+    document.body.appendChild(tipEl);
+  }
+  tipEl.textContent = message;
+  setTimeout(() => {
+    if (tipEl) tipEl.remove();
+  }, 10000);
+}
+
+async function loadWeeklyGoal() {
+  try {
+    const res = await fetch("/api/goals", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    renderWeeklyGoal(data.weeklyGoal || 0);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderWeeklyGoal(goalKg) {
+  let goalSection = document.getElementById("weeklyGoalSection");
+  if (!goalSection) {
+    goalSection = document.createElement("div");
+    goalSection.id = "weeklyGoalSection";
+    goalSection.className = "log-section";
+    goalSection.innerHTML = `\n      <h3>Weekly Goal</h3>\n      <div id="goalValue">${goalKg} kg</div>\n      <div id="goalProgress"></div>\n      <input id="setWeeklyGoalInput" type="number" placeholder="Set weekly goal kg" style="margin-top:8px;" />\n      <button id="setWeeklyGoalBtn" class="btn btn-primary" style="margin-top:8px;">Set Goal</button>\n    `;
+    const dashboard = document.getElementById("dashboard");
+    if (dashboard)
+      dashboard.querySelector(".main-content").appendChild(goalSection);
+    document
+      .getElementById("setWeeklyGoalBtn")
+      .addEventListener("click", async () => {
+        const val = parseFloat(
+          document.getElementById("setWeeklyGoalInput").value,
+        );
+        if (isNaN(val)) return alert("Enter a numeric value");
+        await fetch("/api/goals", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ weeklyGoal: val }),
+        });
+        renderWeeklyGoal(val);
+      });
+  } else {
+    document.getElementById("goalValue").textContent = `${goalKg} kg`;
+  }
+}
+
+async function loadCategorySummary() {
+  try {
+    const res = await fetch("/api/activities/category-summary", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    const top = data.summary && data.summary[0];
+    if (top) {
+      showTip(
+        `Top category this week: ${top._id} (${top.totalCO2.toFixed(1)} kg)`,
+      );
+    }
+  } catch (err) {
+    console.error(err);
+  }
 }
