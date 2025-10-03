@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Footprint Logger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="app-title">
+        <div class="app-logo">
+          <img src="assets/logo.png" alt="Footprint Logger Logo">
+        </div>
+        <span class="title-text">Footprint Logger</span>
+      </div>
+    </header>
+
+    <div class="input-section">
+      <h2>Register</h2>
+      <div class="form-group">
+        <input type="text" id="regUsername" placeholder="Username">
+      </div>
+      <div class="form-group">
+        <input type="email" id="regEmail" placeholder="Email">
+      </div>
+      <div class="form-group">
+        <input type="password" id="regPassword" placeholder="Password">
+      </div>
+      <button class="btn btn-primary" id="registerBtn">Register</button>
+      <p>Already have an account? <a href="signin.html">Sign in</a></p>
+    </div>
+
+    <footer class="footer">Footprint Logger &copy; by Feroza Chishty 2025</footer>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    document.getElementById('registerBtn').addEventListener('click', () => handleRegisterClick('regUsername', 'regEmail', 'regPassword'));
+  </script>
+</body>
+</html>

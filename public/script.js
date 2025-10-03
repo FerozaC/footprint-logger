@@ -6,66 +6,18 @@ const tomorrow = new Date();
 tomorrow.setDate(today.getDate() + 1);
 document.getElementById("activityDate").setAttribute("max", tomorrow.toISOString().split("T")[0]);
 
-document.getElementById("registerBtn").addEventListener("click", async () => {
-  const usernameInput = document.getElementById("regUsername").value;
-  const email = document.getElementById("regEmail").value;
-  const password = document.getElementById("regPassword").value;
-  if (!usernameInput || !email || !password) return alert("All fields are required");
-
-  try {
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: usernameInput, email, password })
-    });
-    const data = await res.json();
-    alert(data.message);
-  } catch (err) {
-    console.error(err);
-    alert("Server error. Please try again.");
-  }
-});
-
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-  if (!email || !password) return alert("All fields are required");
-
-  try {
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      token = data.token;
-      username = data.username;
-      localStorage.setItem("token", token);
-      localStorage.setItem("username", username);
-      document.getElementById("usernameDisplay").textContent = username;
-      document.getElementById("auth-section").classList.add("hidden");
-      document.getElementById("dashboard").classList.remove("hidden");
-      await loadActivities();
-      await loadWeeklySummary();
-      await loadLeaderboard();
-      await loadCommunityAverage();
-    } else {
-      alert(data.message);
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Server error. Please try again.");
-  }
-});
+// Auth is handled on separate pages (signin.html / register.html).
+// This file manages the dashboard, activities and token-based behaviour.
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   token = null;
   username = null;
   localStorage.removeItem("token");
   localStorage.removeItem("username");
+  // Return user to home page where they can sign in or register.
   document.getElementById("dashboard").classList.add("hidden");
-  document.getElementById("auth-section").classList.remove("hidden");
+  // Optionally redirect to sign-in page
+  window.location.href = "signin.html";
 });
 
 document.getElementById("logActivity").addEventListener("click", async () => {
@@ -266,9 +218,11 @@ async function loadCommunityAverage() {
 if (localStorage.getItem("token")) {
   token = localStorage.getItem("token");
   username = localStorage.getItem("username");
-  document.getElementById("usernameDisplay").textContent = username;
-  document.getElementById("auth-section").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
+  const usernameEl = document.getElementById("usernameDisplay");
+  if (usernameEl) usernameEl.textContent = username;
+  const dashboard = document.getElementById("dashboard");
+  if (dashboard) dashboard.classList.remove("hidden");
+  // Load dashboard data
   loadActivities();
   loadWeeklySummary();
   loadLeaderboard();
