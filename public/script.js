@@ -2,6 +2,7 @@ let token = null;
 let username = null;
 
 let socket = null;
+let selectedCategory = null; // null = show all
 
 const today = new Date();
 const tomorrow = new Date();
@@ -78,7 +79,9 @@ async function loadActivities() {
     logDiv.innerHTML = "";
     const initial = 10;
 
-    activities.forEach((a, i) => {
+  const filtered = selectedCategory ? activities.filter(a => a.category === selectedCategory) : activities;
+
+  filtered.forEach((a, i) => {
       const dateStr = new Date(a.date).toLocaleDateString();
       const div = document.createElement("div");
       div.classList.add("activity-item");
@@ -111,7 +114,7 @@ async function loadActivities() {
       logDiv.parentNode.insertBefore(moreBtn, logDiv.nextSibling);
     }
 
-    const total = activities.reduce((sum, a) => sum + a.co2, 0);
+    const total = filtered.reduce((sum, a) => sum + a.co2, 0);
     document.getElementById("dailyTotal").textContent =
       total.toFixed(1) + " kg";
   } catch (err) {
@@ -182,15 +185,16 @@ async function loadWeeklySummary() {
 
 async function loadLeaderboard() {
   try {
-    const res = await fetch("/api/leaderboard");
+    const rangeEl = document.getElementById('leaderboardRange');
+    const days = rangeEl ? parseInt(rangeEl.value, 10) : 0;
+    const url = days && days > 0 ? `/api/leaderboard?days=${days}` : '/api/leaderboard';
+    const res = await fetch(url);
     const data = await res.json();
-    const div = document.getElementById("leaderboard");
-    div.innerHTML = data
-      .map((u) => `<div>${u.username}: ${u.totalCO2.toFixed(1)} kg</div>`)
-      .join("");
+    const div = document.getElementById('leaderboard');
+    div.innerHTML = data.map((u) => `<div>${u.username}: ${u.totalCO2.toFixed(1)} kg</div>`).join('');
   } catch (err) {
     console.error(err);
-    alert("Failed to load leaderboard.");
+    alert('Failed to load leaderboard.');
   }
 }
 
@@ -227,6 +231,7 @@ if (localStorage.getItem("token")) {
     await loadCommunityAverage();
     setupSocket();
     await loadWeeklyGoal();
+    renderCategoryFilters();
     await loadCategorySummary();
   })();
 }
@@ -324,4 +329,27 @@ async function loadCategorySummary() {
   } catch (err) {
     console.error(err);
   }
+}
+
+function renderCategoryFilters() {
+  const container = document.getElementById('categoryFilters');
+  if (!container) return;
+  const categories = ['All','Transport','Food','Energy'];
+  container.innerHTML = '';
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = cat;
+    btn.addEventListener('click', async () => {
+      selectedCategory = cat === 'All' ? null : cat;
+      document.querySelectorAll('#categoryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      await loadActivities();
+    });
+    container.appendChild(btn);
+  });
+  const first = container.querySelector('.filter-btn');
+  if (first) first.classList.add('active');
+  const rangeEl = document.getElementById('leaderboardRange');
+  if (rangeEl) rangeEl.addEventListener('change', loadLeaderboard);
 }

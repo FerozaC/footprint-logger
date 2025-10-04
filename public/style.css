@@ -399,6 +399,33 @@ select:focus {
   font-weight: 600;
   color: #fff;
   background: #10b981;
+.filter-btn {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: #fff;
+  color: #10b981;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.06);
+  transition: all 150ms ease;
+}
+.filter-btn:hover {
+  transform: translateY(-2px);
+  background: #10b981;
+  color: #fff;
+}
+.filter-btn.active {
+  background: #059669;
+  color: #fff;
+  border-color: rgba(5, 150, 105, 0.8);
+}
+#leaderboardRange {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #1f2937;
+}
   border: 0;
   border-radius: 8px;
   cursor: pointer;

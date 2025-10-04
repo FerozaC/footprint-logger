@@ -88,30 +88,26 @@ app.post("/api/activities", authMiddleware, async (req, res) => {
 });
 
 // Return CO2 totals by category for the authenticated user (last 7 days)
-app.get(
-  "/api/activities/category-summary",
-  authMiddleware,
-  async (req, res) => {
-    try {
-      const today = new Date();
-      const lastWeek = new Date();
-      lastWeek.setDate(today.getDate() - 6);
-      lastWeek.setHours(0, 0, 0, 0);
-      const userId = new mongoose.Types.ObjectId(req.userId);
+app.get('/api/activities/category-summary', authMiddleware, async (req, res) => {
+  try {
+    const today = new Date();
+    const lastWeek = new Date();
+    lastWeek.setDate(today.getDate() - 6);
+    lastWeek.setHours(0, 0, 0, 0);
+    const userId = new mongoose.Types.ObjectId(req.userId);
 
-      const summary = await Activity.aggregate([
-        { $match: { user: userId, date: { $gte: lastWeek, $lte: today } } },
-        { $group: { _id: "$category", totalCO2: { $sum: "$co2" } } },
-        { $sort: { totalCO2: -1 } },
-      ]);
+    const summary = await Activity.aggregate([
+      { $match: { user: userId, date: { $gte: lastWeek, $lte: today } } },
+      { $group: { _id: "$category", totalCO2: { $sum: "$co2" } } },
+      { $sort: { totalCO2: -1 } },
+    ]);
 
-      res.json({ summary });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
-    }
-  },
-);
+    res.json({ summary });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 app.post("/api/goals", authMiddleware, async (req, res) => {
   try {
@@ -209,28 +205,24 @@ app.get("/api/activities/average", async (req, res) => {
 
 app.get("/api/leaderboard", async (req, res) => {
   try {
-    const leaderboard = await Activity.aggregate([
-      { $group: { _id: "$user", totalCO2: { $sum: "$co2" } } },
-      { $sort: { totalCO2: 1 } },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: "users",
-          localField: "_id",
-          foreignField: "_id",
-          as: "userInfo",
-        },
-      },
-      { $unwind: "$userInfo" },
-      {
-        $project: {
-          _id: 0,
-          username: "$userInfo.username",
-          email: "$userInfo.email",
-          totalCO2: 1,
-        },
-      },
-    ]);
+    const days = parseInt(req.query.days, 10);
+    const pipeline = [];
+    if (!isNaN(days) && days > 0) {
+      const today = new Date();
+      const cutoff = new Date(today);
+      cutoff.setDate(today.getDate() - (days - 1));
+      cutoff.setHours(0, 0, 0, 0);
+      pipeline.push({ $match: { date: { $gte: cutoff, $lte: today } } });
+    }
+
+    pipeline.push({ $group: { _id: "$user", totalCO2: { $sum: "$co2" } } });
+    pipeline.push({ $sort: { totalCO2: 1 } });
+    pipeline.push({ $limit: 10 });
+    pipeline.push({ $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "userInfo" } });
+    pipeline.push({ $unwind: "$userInfo" });
+    pipeline.push({ $project: { _id: 0, username: "$userInfo.username", email: "$userInfo.email", totalCO2: 1 } });
+
+    const leaderboard = await Activity.aggregate(pipeline);
     res.json(leaderboard);
   } catch (err) {
     console.error(err);
@@ -252,7 +244,6 @@ app.get("/api/health", (req, res) => {
 
 io.on("connection", (socket) => {
   socket.on("register", (payload) => {
-    // Expect payload to be a JWT token; verify and join the user's room
     try {
       const secret = process.env.JWT_SECRET || "your_jwt_secret";
       const decoded = jwt.verify(payload, secret);

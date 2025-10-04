@@ -74,12 +74,23 @@
           <div class="log-section">
             <div class="log-header">
               <h3>Today's Activities</h3>
+              <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                <div id="categoryFilters" style="display:flex;gap:8px"></div>
+              </div>
             </div>
             <div class="activity-log" id="activityLog"></div>
           </div>
 
           <div class="log-section">
             <h3>Leaderboard</h3>
+            <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">
+              <label for="leaderboardRange" style="font-size:0.9rem;color:#666;margin-right:6px">Range:</label>
+              <select id="leaderboardRange" style="padding:6px;border-radius:6px;border:1px solid #ccc">
+                <option value="0">All time</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+              </select>
+            </div>
             <div id="leaderboard"></div>
           </div>
 
